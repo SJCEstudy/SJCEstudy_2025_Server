@@ -1,98 +1,107 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# PokeRaid - Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+PokeRaid는 NestJS 기반의 게임 서버 백엔드입니다. 사용자 인증, Redis 기반 세션, 게임방 구조 등을 포함하며 웹소켓 기반 실시간 통신을 지원합니다.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## ✅ 기술 스택
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- **언어/프레임워크**: Node.js, NestJS
+- **데이터베이스**: MySQL (TypeORM)
+- **세션 저장소**: Redis (ioredis)
+- **인증 방식**: Redis 세션 ID 기반 (express-session 제거)
+- **웹소켓**: Socket.IO (세션 ID 인증 방식)
+- **인프라**: Docker / docker-compose
 
-## Project setup
+---
 
-```bash
-$ yarn install
-```
+## ✅ 주요 기능
 
-## Compile and run the project
+### 1. 사용자 인증
 
-```bash
-# development
-$ yarn run start
+- 회원가입 (`POST /users/register`): username, password
+- 로그인 (`POST /users/login`):
+  - 비밀번호 비교 (bcrypt)
+  - 세션 중복 체크 및 TTL 기반 Redis 세션 저장
+  - 클라이언트에 `sessionId` 발급
 
-# watch mode
-$ yarn run start:dev
+### 2. Redis 기반 세션 구조
 
-# production mode
-$ yarn run start:prod
-```
+- `session:{sessionId}`: 사용자 정보 (TTL 1시간)
+- `user_session:{userId}`: 해당 유저의 sessionId 저장
+- 로그인 시 기존 세션 제거 후 새로운 세션 등록
 
-## Run tests
+### 3. 웹소켓 인증
 
-```bash
-# unit tests
-$ yarn run test
+- 클라이언트는 `sessionId`를 WebSocket 연결 시 쿼리로 전달
+- 서버는 Redis에서 세션 조회 후 인증
+- express-session 미사용, 쿠키 비활성화
 
-# e2e tests
-$ yarn run test:e2e
+### 4. 테스트
 
-# test coverage
-$ yarn run test:cov
-```
+- 단위 테스트: `UserController` 테스트 (`user.controller.spec.ts`)
+- E2E 테스트: 실제 HTTP 테스트 (`user.e2e-spec.ts`)
 
-## Deployment
+---
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## ✅ 실행 방법
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### 1. Docker로 Redis & MySQL 실행
 
 ```bash
-$ yarn install -g @nestjs/mau
-$ mau deploy
+docker-compose -f ./docker-compose.yml up -d
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### 2. 프로젝트 실행
 
-## Resources
+```bash
+yarn install
+yarn start:dev
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+### ✅ 테스트 실행
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+#### 1. 단위 테스트
 
-## Support
+```bash
+yarn test
+```
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+#### 2. 엔드투엔드 테스트
 
-## Stay in touch
+```bash
+yarn test:e2e
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+### ✅ RedisInsight 접속
 
-## License
+- 웹 UI: http://localhost:8001
+- Redis 주소: redis:6379 (도커 내부 기준)
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+### ✅ 향후 구현 예정
+
+- 게임방 구조 설계 및 실시간 동기화
+- WebSocket 이벤트 인증 처리
+- 세션 TTL 갱신 로직
+- 유저 상태 관리 (대기/게임중)
+
+### ✅ 폴더 구조 (일부)
+
+```pgsql
+src/
+  ├── user/
+  │   ├── user.controller.ts
+  │   ├── user.service.ts
+  │   ├── user.dto.ts
+  │   └── user.entity.ts
+  ├── redis/
+  │   ├── redis.module.ts
+  │   ├── redis.service.ts
+  └── main.ts
+```
+
+### ✅ 기타
+
+- Redis TTL을 활용하여 세션 만료 자동 처리
+- 중복 로그인 시 기존 세션 제거
+- WebSocket 중심 인증 구조로 JWT 없이 상태 유지
