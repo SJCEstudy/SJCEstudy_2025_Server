@@ -1,10 +1,8 @@
 import { Module } from '@nestjs/common';
-import { UserController } from './user/user.controller';
-import { UserService } from './user/user.service';
-import { RedisModule } from './redis/redis.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './user/user.entity';
 import { UserModule } from './user/user.module';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -15,7 +13,7 @@ import { UserModule } from './user/user.module';
       username: 'user',
       password: 'secret123',
       database: 'pokeraid',
-      entities: [User],
+      entities: [__dirname + '/**/*.entity{.ts,.js}'],
     }),
     RedisModule.forRootAsync(),
     UserModule,

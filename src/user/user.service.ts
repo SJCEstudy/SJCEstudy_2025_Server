@@ -31,4 +31,8 @@ export class UserService {
     const isValid = await bcrypt.compare(password, user.password);
     return isValid ? user : null;
   }
+  
+  async findByIdOrFail(seq: number): Promise<User> {
+    return this.userRepo.findOneOrFail({ where: { seq: seq } });
+  }
 }

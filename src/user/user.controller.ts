@@ -4,17 +4,22 @@ import {
   Body,
   Req,
   UnauthorizedException,
+  Get,
+  UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { Request } from 'express';
 import { v4 as uuidv4, v4 } from 'uuid';
 import { RedisService } from 'src/redis/redis.service';
 import { LoginReqDto, LoginResDto, RegistrationReqDto } from './user.dto';
+import { AuthenticatedRequest, HttpSessionGuard } from 'src/guard/http.session.guard';
+import { PoketmonService } from 'src/pokemon/pokemon.service';
 
 @Controller('users')
 export class UserController {
   constructor(
     private readonly userService: UserService,
+    private readonly pokemonService: PoketmonService,
     private readonly redisService: RedisService,
   ) {}
 
@@ -51,5 +56,11 @@ export class UserController {
       seq: user.seq,
       id: user.id
     };
+  }
+
+  @Get('pokemons')
+  @UseGuards(HttpSessionGuard)
+  async getUserPokemons(@Req() request: AuthenticatedRequest) {
+    return this.pokemonService.getUserPokemons(request['user'].seq);
   }
 }
