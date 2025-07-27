@@ -1,8 +1,9 @@
 import { InjectRepository } from "@nestjs/typeorm";
 import { Poketmon, UserPoketmon } from "./pokemon.entity";
 import { PoketmonSkill } from "./pokemon.skill.entity";
+import { BadRequestException } from "@nestjs/common/exceptions";
+import { Injectable } from "@nestjs/common/decorators";
 import { Repository } from "typeorm";
-import { Injectable } from "@nestjs/common";
 
 @Injectable()
 export class PoketmonService {
@@ -14,7 +15,49 @@ export class PoketmonService {
     @InjectRepository(UserPoketmon)
     private userPokemonRepo: Repository<UserPoketmon>,
   ) {}
-  
+
+    async giveStarterPokemon(userSeq: number) {
+    const starter = await this.pokemonRepo.findOne({
+      where: { id: 1 },
+    });
+    if (!starter) throw new BadRequestException('Starter Pokemon not found');
+
+    const userPokemon = this.userPokemonRepo.create({
+      user_seq: userSeq,
+      pokemon_id: starter.id,
+    });
+
+    return this.userPokemonRepo.save(userPokemon);
+  }
+
+    async givePokemon(userSeq: number, pokemonId: number) {
+    const pokemon = await this.pokemonRepo.findOne({
+      where: { id: pokemonId },
+    });
+    if (!pokemon) throw new BadRequestException('Pokemon not found');
+
+    const userPokemon = this.userPokemonRepo.create({
+      user_seq: userSeq,
+      pokemon_id: pokemon.id,
+    });
+
+    return this.userPokemonRepo.save(userPokemon);
+  }
+
+  async getPokemonWithSkills(id: number) {
+    const pokemon = await this.pokemonRepo.findOne({ where: { id } });
+    if (!pokemon) return null;
+
+    const skills = await this.pokemonSkillRepo.find({
+      where: { pokemon_id: pokemon.id },
+    });
+
+    return {
+      ...pokemon,
+      skills: skills,
+    };
+  }
+
   async getUserPokemons(userSeq: number) {
     const userPokemons = await this.userPokemonRepo.find({
       where: { user_seq: userSeq },
