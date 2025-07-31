@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './user/user.entity';
 import { UserModule } from './user/user.module';
 import { RedisModule } from './redis/redis.module';
+import { ShopModule } from './shop/shop.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { RedisModule } from './redis/redis.module';
     }),
     RedisModule.forRootAsync(),
     UserModule,
+    ShopModule,
   ],
 })
 export class AppModule {}

@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Post,
-  Body,
-  Req,
-  UnauthorizedException,
-  Get,
-  UseGuards,
-} from '@nestjs/common';
+
 import { UserService } from './user.service';
 import { Request } from 'express';
 import { v4 as uuidv4, v4 } from 'uuid';
@@ -14,6 +6,8 @@ import { RedisService } from 'src/redis/redis.service';
 import { LoginReqDto, LoginResDto, RegistrationReqDto } from './user.dto';
 import { AuthenticatedRequest, HttpSessionGuard } from 'src/guard/http.session.guard';
 import { PoketmonService } from 'src/pokemon/pokemon.service';
+import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common/decorators';
+import { UnauthorizedException } from '@nestjs/common/exceptions';
 
 @Controller('users')
 export class UserController {
