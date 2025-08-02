@@ -6,6 +6,7 @@ import { PoketmonService } from 'src/pokemon/pokemon.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Injectable } from '@nestjs/common/decorators';
 import { BadRequestException } from '@nestjs/common/exceptions';
+import { BlockchainService } from 'src/blockchain/blockchain.service';
 
 @Injectable()
 export class ShopService {
@@ -13,6 +14,7 @@ export class ShopService {
     @InjectRepository(Shop)
     private readonly shopRepo: Repository<Shop>,
     private readonly poketmonService: PoketmonService,
+    private readonly blockchainService: BlockchainService,
   ) {}
 
   async getAvailablePokemonItems() {
@@ -39,13 +41,13 @@ export class ShopService {
     if (!item) throw new BadRequestException('Item not found');
     if (item.stock <= 0) throw new BadRequestException('Item is out of stock');
 
-    // const txHash = await this.blockchainService.deductTokens(user, String(item.price));
+    const txHash = await this.blockchainService.deductTokens(user, String(item.price));
     await this.poketmonService.givePokemon(user.seq, item.target_id);
-    // await this.shopRepo.decrement({ id: item.id }, 'stock', 1);
+    await this.shopRepo.decrement({ id: item.id }, 'stock', 1);
 
     return { 
       itemId: item.id, 
-      // txHash 
+      txHash 
     };
   }
 }

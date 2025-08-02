@@ -5,6 +5,8 @@ import { PoketmonService } from 'src/pokemon/pokemon.service';
 import { RedisService } from 'src/redis/redis.service';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
+import { ethers } from 'ethers';
+import { encrypt } from 'src/utils/util.crypto';
 
 @Injectable()
 export class UserService {
@@ -25,6 +27,16 @@ export class UserService {
     return save;
   }
 
+  async walletLink(seq: number, privateKey: string) {
+    const wallet = new ethers.Wallet(privateKey);
+    const encryptedPrivateKey = encrypt(privateKey);
+    const updateResult = await this.userRepo.update(seq, {
+      address: wallet.address,
+      private_key: encryptedPrivateKey,
+    });
+
+    return updateResult;
+  }
 
 
   async validateUser(id: string, password: string): Promise<User | null> {

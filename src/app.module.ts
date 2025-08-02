@@ -4,6 +4,7 @@ import { User } from './user/user.entity';
 import { UserModule } from './user/user.module';
 import { RedisModule } from './redis/redis.module';
 import { ShopModule } from './shop/shop.module';
+import { BlockchainModule } from './blockchain/blockchain.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ShopModule } from './shop/shop.module';
     RedisModule.forRootAsync(),
     UserModule,
     ShopModule,
+    BlockchainModule,
   ],
 })
 export class AppModule {}
