@@ -3,7 +3,7 @@ import { UserService } from './user.service';
 import { Request } from 'express';
 import { v4 as uuidv4, v4 } from 'uuid';
 import { RedisService } from 'src/redis/redis.service';
-import { LoginReqDto, LoginResDto, RegistrationReqDto } from './user.dto';
+import { LoginReqDto, LoginResDto, RegistrationReqDto, WalletLinkReqDto } from './user.dto';
 import { AuthenticatedRequest, HttpSessionGuard } from 'src/guard/http.session.guard';
 import { PoketmonService } from 'src/pokemon/pokemon.service';
 import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common/decorators';
@@ -57,4 +57,12 @@ export class UserController {
   async getUserPokemons(@Req() request: AuthenticatedRequest) {
     return this.pokemonService.getUserPokemons(request['user'].seq);
   }
+
+  @Post('wallet/link')
+  @UseGuards(HttpSessionGuard)
+  async walletLink(@Req() request: AuthenticatedRequest, @Body() dto: WalletLinkReqDto) {
+    return this.userService.walletLink(request['user'].seq, dto.privateKey);
+  }
+
+
 }

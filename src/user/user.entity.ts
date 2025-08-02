@@ -13,4 +13,11 @@ export class User {
 
     @Column()
     created_at: number;
+
+    @Column({ nullable: true })
+    address: string;
+
+    @Column()
+    private_key: string;
+
 }

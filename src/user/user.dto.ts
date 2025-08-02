@@ -17,3 +17,7 @@ export class LoginResDto {
     seq: number;
     id: string;
 }
+
+export class WalletLinkReqDto {
+    privateKey: string;
+}
