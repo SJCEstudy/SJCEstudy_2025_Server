@@ -98,8 +98,8 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (!myPoketmons.some(p => p.poketmonId == body.myPoketmonId)) {
       throw new Error();
     }
-    // const roomId = uuidv4();
-    const roomId = '2b9e9d3d-ff84-429a-901c-faeeeedd7888';
+    const roomId = uuidv4();
+    // const roomId = '2b9e9d3d-ff84-429a-901c-faeeeedd7888';
     await this.redisService.createRoom(roomId, user.seq, boss.id);
     await this.redisService.joinRoom(roomId, user.seq, body.myPoketmonId);
     const updateRoom = await this.roomService.getRoom(roomId, 'createRoom');
