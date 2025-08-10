@@ -24,4 +24,11 @@ export class RoomService {
       eventType: eventType
     };
   }
+  
+  async getRooms() {
+    const rooms = await this.redisService.getRooms();
+    const roomIds = rooms.map((key) => key.split(':')[1]);
+    return Promise.all(roomIds.map((roomId) => this.getRoom(roomId, "http")));
+  }
+
 }
