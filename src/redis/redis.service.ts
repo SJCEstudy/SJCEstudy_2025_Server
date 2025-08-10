@@ -58,10 +58,10 @@ export class RedisService {
     });
   }
 
-  async joinRoom(roomId: string, userSeq: number, pokemonId: number) {
+  async joinRoom(roomId: string, userSeq: number, userId: string, pokemonId: number) {
     const key = `room:${roomId}:members`;
     const order = await this.client.incr(`room:${roomId}:memberOrder`);
-    const memberData = JSON.stringify({ userSeq: userSeq, pokemonId, order });
+    const memberData = JSON.stringify({ userSeq: userSeq, userId, pokemonId, order });
     await this.client.rpush(key, memberData);
     await this.client.set(`user:${userSeq}:room`, roomId);
   }
