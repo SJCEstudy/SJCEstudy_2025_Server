@@ -146,4 +146,44 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.server.to(body.roomId).emit('roomUpdate', body.message);
   }
 
+  @UseGuards(WsSessionGuard)
+  @SubscribeMessage('leaveRoom')
+  async handleLeaveRoom(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() body: LeaveRoomDto,
+  ) {
+    const user = client['user'];
+
+    console.log(body.roomId);
+    console.log(user.seq);
+
+    const isMember = await this.redisService.isMember(
+      body.roomId,
+      String(user.seq),
+    );
+
+    console.log(isMember);
+
+    if (!isMember) {
+      throw new Error('not member');
+    }
+    await this.redisService.leaveRoom(body.roomId, user.seq);
+    const room = await this.roomService.getRoom(body.roomId, 'leaveRoom');
+    
+    const memberCount = await this.redisService.getMemberCount(body.roomId);
+    let roomUpdate = {};
+    if (memberCount <= 0) {
+      await this.redisService.removeRoom(body.roomId);
+      roomUpdate = {
+        ...room,
+        members: []
+      }
+    } else {
+      roomUpdate = await this.roomService.getRoom(body.roomId, 'leaveRoom');
+    }
+    this.server.to(body.roomId).emit('roomUpdate', roomUpdate);
+    client.leave(body.roomId);
+    return room;
+  }
+
 }
