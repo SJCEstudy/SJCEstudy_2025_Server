@@ -44,6 +44,22 @@ export class PoketmonService {
     return this.userPokemonRepo.save(userPokemon);
   }
 
+  async getAllPokemonWithSkills() {
+    const pokemons = await this.pokemonRepo.find();
+    if (!pokemons) new Error ("no pokemon");
+
+    return await Promise.all(pokemons.map(async p => {
+      const skills = await this.pokemonSkillRepo.find({
+        where: { pokemon_id: p.id },
+      });
+      return {
+        ...p,
+        skills: skills,
+      };
+    }));
+
+  }
+
   async getPokemonWithSkills(id: number) {
     const pokemon = await this.pokemonRepo.findOne({ where: { id } });
     if (!pokemon) return null;

@@ -137,7 +137,7 @@ export class RedisService {
   }
 
   async removeBattleState(roomId: string) {
-    await this.client.del(`raid:${roomId}:state`);
+    await this.client.del(`raid:${roomId}:battleState`);
   }
 
   async removeUserRoomMapping(userId: number) {
