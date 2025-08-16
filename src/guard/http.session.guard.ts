@@ -24,7 +24,7 @@ export class HttpSessionGuard implements CanActivate {
     if (!session) {
       throw new Error('redis session is emptry');
     }
-    // await this.redisService.expireExtend(sessionId);
+    await this.redisService.expireExtend(sessionId);
     const user = await this.userService.findByIdOrFail(session.seq);
     request['user'] = user;
     return true;

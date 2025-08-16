@@ -64,5 +64,9 @@ export class UserController {
     return this.userService.walletLink(request['user'].seq, dto.privateKey);
   }
 
+  @Get('test')
+  async test() {
+    (undefined as any).x();
+  }
 
 }
