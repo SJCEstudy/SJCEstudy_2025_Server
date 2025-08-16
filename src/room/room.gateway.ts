@@ -98,8 +98,8 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (!myPoketmons.some(p => p.poketmonId == body.myPoketmonId)) {
       throw new Error();
     }
-    // const roomId = uuidv4();
-    const roomId = '2b9e9d3d-ff84-429a-901c-faeeeedd7888';
+    const roomId = uuidv4();
+    // const roomId = '2b9e9d3d-ff84-429a-901c-faeeeedd7888';
     await this.redisService.createRoom(roomId, user.seq, boss.id);
     await this.redisService.joinRoom(roomId, user.seq, user.id, body.myPoketmonId);
     const updateRoom = await this.roomService.getRoom(roomId, 'createRoom');
@@ -211,7 +211,7 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const members = await Promise.all(
       room.members.map(async (member) => {
         const pokemons = await this.poketmonService.getUserPokemons(member.usreSeq);
-        const selected = pokemons.find((p) => p.poketmonId === member.pokemonId);
+        const selected = pokemons.find((p) => p.poketmonId == member.pokemonId);
         if (!selected) throw new Error(`Invalid pokemon for user ${member.userSeq}`);
 
         return {
@@ -235,6 +235,7 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
       userSeq: 0,
       connectionStatus: 'on',
       poketmon: {
+        seq: boss.id,
         hp: boss.hp,
         skills: boss.skills.map((s) => ({
           seq: s.skill_id,
@@ -249,6 +250,7 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
       turn: { count: 1, next: sortedMembers[0].userSeq },
       action: null,
       status: 'fighting',
+      eventType: 'startRaid'
     };
 
     await this.redisService.setBattleState(body.roomId, battleState);
@@ -272,14 +274,17 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
       throw new ForbiddenException('Not your turn');
     }
 
-    const actor = state.members.find((m) => m.userSeq === user.seq);
-    const boss = state.members.find((m) => m.userSeq === 0);
-    const skill = actor.poketmon.skills.find((s) => s.seq === body.skillSeq);
-    if (!skill || skill.pp <= 0) {
-      throw new Error('Invalid or exhausted skill');
-    }
+    const actor = state.members.find((m) => m.userSeq == user.seq);
+    const boss = state.members.find((m) => m.userSeq == 0);
+    const skill = actor.poketmon.skills.find((s) => s.seq == body.skillSeq);
+    console.log(JSON.stringify(actor));
+    console.log(JSON.stringify(skill));
 
-    skill.pp -= 1;
+    // if (!skill || skill.pp <= 0) {
+    //   throw new Error('Invalid or exhausted skill');
+    // }
+
+    // skill.pp -= 1;
 
     const actorPoketmon = await this.poketmonService.getPokemonWithSkills(actor.poketmon.seq);
     const actionSkill = actorPoketmon?.skills.find(s => s.skill_id == body.skillSeq);
@@ -307,6 +312,7 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
         next: nextUser,
       },
       status,
+      eventType: 'action'
     };
 
     await this.redisService.setBattleState(body.roomId, updatedState);
@@ -318,7 +324,7 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     if (status !== 'fighting') {
       const players = state.members.filter((m) => m.id !== 0);
-      this.distributeRewards(players, status);
+      // this.distributeRewards(players, status);
       this.finalizeBattle(body.roomId, players);
     }
   }
@@ -333,12 +339,13 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     const bossPokemonId = await this.redisService.getRoomBoss(roomId);
     const actorPoketmon = await this.poketmonService.getPokemonWithSkills(bossPokemonId);
-    const actionSkill = actorPoketmon?.skills.find(s => s.skill_id == selectedSkill);
+    const actionSkill = actorPoketmon?.skills.find(s => s.skill_id == selectedSkill.seq);
     if (!actionSkill) {
       throw new Error();
     }
 
     // skill.pp -= 1;
+
 
     let targets: typeof alivePlayers = [];    
     if (actionSkill.target === 'SINGLE') {
@@ -367,6 +374,7 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
         next: nextUser,
       },
       status,
+      eventType: 'boss_action'
     };
 
     await this.redisService.setBattleState(roomId, updatedState);
@@ -374,7 +382,7 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     if (status !== 'fighting') {
       const players = state.members.filter((m) => m.userSeq !== 0);
-      this.distributeRewards(players, status);
+      // this.distributeRewards(players, status);
       this.finalizeBattle(roomId, players);
     }
   }
