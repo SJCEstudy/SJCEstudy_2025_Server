@@ -324,8 +324,8 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     if (status !== 'fighting') {
       const players = state.members.filter((m) => m.id !== 0);
-      // this.distributeRewards(players, status);
-      this.finalizeBattle(body.roomId, players);
+      this.distributeRewards(players, status);
+      await this.finalizeBattle(body.roomId, players);
     }
   }
 
@@ -382,7 +382,7 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     if (status !== 'fighting') {
       const players = state.members.filter((m) => m.userSeq !== 0);
-      // this.distributeRewards(players, status);
+      this.distributeRewards(players, status);
       this.finalizeBattle(roomId, players);
     }
   }
@@ -404,14 +404,11 @@ export class RoomGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return currentIndex === ordered.length - 1 ? 0 : ordered[currentIndex + 1].userSeq;
   }
 
-  private distributeRewards(members: { userSeq: number }[], status: 'win' | 'defeat') {
+  private async distributeRewards(members: { userSeq: number }[], status: 'win' | 'defeat') {
     const amount = status === 'win' ? '30' : '10';
     for (const member of members) {
-      this.userService.findByIdOrFail(member.userSeq).then((user) => {
-        this.blockchainService.grantTokens(user, amount).catch((err) => {
-          console.error(`Failed to send tokens to user ${user.id}:`, err);
-        });
-      });
+      const user = await this.userService.findByIdOrFail(member.userSeq);
+      await this.blockchainService.grantTokens(user, amount);
     }
   }
 
